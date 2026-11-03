@@ -1,0 +1,330 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
+    --font-handwriting: 'Dancing Script', cursive;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-burmese: 'Noto Sans Myanmar', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #0f172a;
+    color: #0f172a;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+.font-serif-romantic {
+  font-family: var(--font-serif);
+}
+
+.font-handwriting {
+  font-family: var(--font-handwriting);
+}
+
+.font-burmese {
+  font-family: var(--font-burmese);
+  line-height: 1.75;
+  font-style: normal !important;
+}
+
+/* Translucent Luxury Garden Glass (Allows stunning garden view to show through) */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 15px 35px -10px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  color: #0f172a;
+}
+
+.glass-panel-gold {
+  background: rgba(255, 253, 247, 0.52);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  box-shadow: 0 15px 35px -10px rgba(180, 83, 9, 0.12), 0 0 0 1px rgba(254, 243, 199, 0.6) inset;
+  color: #1e1b4b;
+}
+
+.glow-rose {
+  box-shadow: 0 12px 30px -8px rgba(225, 29, 72, 0.2);
+}
+
+.glow-gold {
+  box-shadow: 0 12px 30px -8px rgba(217, 119, 6, 0.22);
+}
+
+/* Crisp text contrast shadows without blurry fuzzy halos */
+.text-glow-rose {
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+.text-glow-gold {
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+/* Candle Flame Animation */
+@keyframes flameFlicker {
+  0%, 100% {
+    transform: scale(1) rotate(-1deg);
+    opacity: 0.95;
+    filter: drop-shadow(0 0 8px #fbbf24) drop-shadow(0 0 16px #f59e0b);
+  }
+  25% {
+    transform: scale(1.06, 0.94) rotate(1.5deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 12px #fbbf24) drop-shadow(0 0 22px #ea580c);
+  }
+  50% {
+    transform: scale(0.96, 1.05) rotate(-0.5deg);
+    opacity: 0.88;
+    filter: drop-shadow(0 0 7px #fbbf24) drop-shadow(0 0 14px #f59e0b);
+  }
+  75% {
+    transform: scale(1.04, 0.98) rotate(2deg);
+    opacity: 0.98;
+    filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 20px #ea580c);
+  }
+}
+
+.animate-flame {
+  animation: flameFlicker 1.8s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Floating animation */
+@keyframes romanticFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+}
+
+.animate-float-slow {
+  animation: romanticFloat 6s ease-in-out infinite;
+}
+
+/* Subtle Moon Pulse */
+@keyframes moonPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 25px rgba(243, 232, 255, 0.4)) drop-shadow(0 0 60px rgba(192, 132, 252, 0.2));
+  }
+  50% {
+    filter: drop-shadow(0 0 35px rgba(243, 232, 255, 0.6)) drop-shadow(0 0 80px rgba(192, 132, 252, 0.35));
+  }
+}
+
+.animate-moon {
+  animation: moonPulse 5s ease-in-out infinite;
+}
+
+/* Dreamy Cinematic Optical Bloom & Glow Animations */
+@keyframes bloomPulseDay {
+  0%, 100% {
+    opacity: 0.32;
+    filter: blur(14px) brightness(1.15) saturate(1.22);
+  }
+  50% {
+    opacity: 0.46;
+    filter: blur(18px) brightness(1.25) saturate(1.32);
+  }
+}
+
+@keyframes bloomPulseGolden {
+  0%, 100% {
+    opacity: 0.52;
+    filter: blur(16px) brightness(1.24) saturate(1.42) drop-shadow(0 0 25px rgba(245, 158, 11, 0.5));
+  }
+  50% {
+    opacity: 0.70;
+    filter: blur(22px) brightness(1.38) saturate(1.58) drop-shadow(0 0 45px rgba(234, 88, 12, 0.65));
+  }
+}
+
+@keyframes bloomPulseTwilight {
+  0%, 100% {
+    opacity: 0.42;
+    filter: blur(14px) brightness(1.18) saturate(1.35) drop-shadow(0 0 20px rgba(168, 85, 247, 0.45));
+  }
+  50% {
+    opacity: 0.62;
+    filter: blur(20px) brightness(1.30) saturate(1.50) drop-shadow(0 0 40px rgba(56, 189, 248, 0.55));
+  }
+}
+
+.animate-bloom-day {
+  animation: bloomPulseDay 7s ease-in-out infinite;
+}
+
+.animate-bloom-golden {
+  animation: bloomPulseGolden 6s ease-in-out infinite;
+}
+
+.animate-bloom-twilight {
+  animation: bloomPulseTwilight 6.5s ease-in-out infinite;
+}
+
+/* Fine Cotton Stationery Paper (Translucent so garden view shows through) */
+.parchment-bg {
+  background-color: rgba(252, 250, 246, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(217, 119, 6, 0.08) 0%, transparent 65%),
+    radial-gradient(circle at 100% 100%, rgba(225, 29, 72, 0.05) 0%, transparent 60%);
+  border: 1px solid rgba(217, 119, 6, 0.28);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  color: #1e293b;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(224, 242, 254, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.5);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(2, 132, 199, 0.7);
+}
+
+/* Smooth Section Transitions */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes gentlePulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 25px rgba(244, 114, 182, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 45px rgba(244, 114, 182, 0.5);
+  }
+}
+
+.animate-glow-pulse {
+  animation: gentlePulseGlow 4s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Romantic Heartbeat Pulse */
+@keyframes romanticHeartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.08);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+.animate-heartbeat {
+  animation: romanticHeartbeat 2.8s ease-in-out infinite;
+}
+
+/* Shimmer Glow */
+@keyframes shimmerPass {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmerPass 4s linear infinite;
+}
+
+/* Orbiting Sparkles */
+@keyframes orbitRing {
+  from {
+    transform: rotate(0deg) translateX(38px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(38px) rotate(-360deg);
+  }
+}
+
+.animate-orbit {
+  animation: orbitRing 8s linear infinite;
+}
+
+/* Gentle Breathe for CTA Buttons */
+@keyframes gentleBreathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 25px rgba(244, 114, 182, 0.4);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 40px rgba(244, 114, 182, 0.7);
+  }
+}
+
+.animate-breathe {
+  animation: gentleBreathe 3.2s ease-in-out infinite;
+}
+
+/* Dynamic Slow-Scrolling Romantic Marquee */
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 42s linear infinite;
+}
+
+
