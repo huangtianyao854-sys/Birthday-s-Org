@@ -83,14 +83,19 @@ export const RealGardenBackground: React.FC<RealGardenBackgroundProps> = ({
   const [activeHotspot, setActiveHotspot] = useState<HotspotInfo | null>(null);
   const [cameraView] = useState<GardenCameraView>('arch');
 
-  // Subtle mobile touch & device motion parallax
+  // Subtle desktop pointer parallax (disabled on mobile touch to ensure 100% fluid scrolling)
   useEffect(() => {
+    // Skip on touch/mobile devices to prevent continuous React re-renders during scrolling
+    if (typeof window === 'undefined' || window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768) {
+      return;
+    }
+
     let frameId = 0;
-    const handleMove = (e: MouseEvent | TouchEvent) => {
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-      const normX = (clientX / window.innerWidth - 0.5) * 10;
-      const normY = (clientY / window.innerHeight - 0.5) * 8;
+    const handleMove = (e: MouseEvent) => {
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      const normX = (clientX / window.innerWidth - 0.5) * 8;
+      const normY = (clientY / window.innerHeight - 0.5) * 6;
 
       cancelAnimationFrame(frameId);
       frameId = requestAnimationFrame(() => {
@@ -99,10 +104,8 @@ export const RealGardenBackground: React.FC<RealGardenBackgroundProps> = ({
     };
 
     window.addEventListener('mousemove', handleMove, { passive: true });
-    window.addEventListener('touchmove', handleMove, { passive: true });
     return () => {
       window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('touchmove', handleMove);
       cancelAnimationFrame(frameId);
     };
   }, []);

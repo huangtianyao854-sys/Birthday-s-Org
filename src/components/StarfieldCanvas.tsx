@@ -162,20 +162,19 @@ export const StarfieldCanvas: React.FC<StarfieldCanvasProps> = ({
     let stars: Star[] = [];
 
     const initStars = () => {
-      // Midnight mode features higher star density (260-440) and prominent celestial radiance
-      const divisor = isMidnight ? 1400 : 2200;
-      const minStars = isMidnight ? 260 : 160;
-      const maxStars = isMidnight ? 440 : 300;
+      const isMobile = window.innerWidth < 768;
+      const divisor = isMidnight ? (isMobile ? 3800 : 1400) : (isMobile ? 5500 : 2200);
+      const minStars = isMidnight ? (isMobile ? 50 : 200) : (isMobile ? 30 : 120);
+      const maxStars = isMidnight ? (isMobile ? 85 : 320) : (isMobile ? 55 : 200);
       const count = Math.min(Math.max(Math.floor((width * height) / divisor), minStars), maxStars);
       stars = [];
       for (let i = 0; i < count; i++) {
         const baseAlpha = isMidnight ? 0.6 + Math.random() * 0.4 : 0.45 + Math.random() * 0.55;
-        // Concentrate stars in the sky region (-height * 0.4 to height * 0.15 relative to center)
         const skyY = (Math.random() * 0.68 - 0.5) * height;
         stars.push({
           x: (Math.random() - 0.5) * width * 1.35,
           y: skyY,
-          radius: Math.random() * (isMidnight ? 2.4 : 1.8) + (isMidnight ? 1.0 : 0.8),
+          radius: Math.random() * (isMidnight ? 2.2 : 1.6) + (isMidnight ? 0.9 : 0.7),
           baseAlpha,
           alpha: baseAlpha,
           twinkleSpeed: (isMidnight ? 0.022 : 0.015) + Math.random() * (isMidnight ? 0.04 : 0.03),
@@ -193,16 +192,16 @@ export const StarfieldCanvas: React.FC<StarfieldCanvasProps> = ({
         y: Math.random() * height * 0.35,
         vx: 9 + Math.random() * 5,
         vy: 5 + Math.random() * 3,
-        length: (isMidnight ? 140 : 110) + Math.random() * (isMidnight ? 90 : 70),
-        width: isMidnight ? 2.2 : 1.8,
+        length: (isMidnight ? 120 : 90) + Math.random() * (isMidnight ? 70 : 50),
+        width: isMidnight ? 2.0 : 1.6,
         alpha: 0.98,
         color: Math.random() > 0.4 ? '#fef08a' : Math.random() > 0.5 ? '#bae6fd' : '#fda4af',
       });
-    }, isMidnight ? 2100 : 3200);
+    }, isMidnight ? 2600 : 3800);
 
     let tick = 0;
 
-    // Helper: Draw 4-point Diamond Star with optical diffraction spikes
+    // Helper: Draw 4-point Diamond Star (lightweight, zero shadowBlur)
     const drawDiamondStar = (
       ctx: CanvasRenderingContext2D,
       x: number,
@@ -216,11 +215,17 @@ export const StarfieldCanvas: React.FC<StarfieldCanvasProps> = ({
       ctx.translate(x, y);
       ctx.rotate(rotation);
       ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+
+      // Soft ambient aura
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 1.6, 0, Math.PI * 2);
       ctx.fillStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = size * 3;
+      ctx.globalAlpha = alpha * 0.3;
+      ctx.fill();
 
       // 4-point star curve
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
       ctx.beginPath();
       ctx.moveTo(0, -size);
       ctx.quadraticCurveTo(size * 0.15, -size * 0.15, size, 0);
@@ -311,9 +316,7 @@ export const StarfieldCanvas: React.FC<StarfieldCanvasProps> = ({
         fxCtx.save();
         fxCtx.globalAlpha = r.alpha;
         fxCtx.strokeStyle = r.color;
-        fxCtx.lineWidth = 1.2;
-        fxCtx.shadowColor = r.color;
-        fxCtx.shadowBlur = 10;
+        fxCtx.lineWidth = 1.4;
         fxCtx.beginPath();
         fxCtx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
         fxCtx.stroke();
@@ -369,11 +372,9 @@ export const StarfieldCanvas: React.FC<StarfieldCanvasProps> = ({
         fxCtx.scale(c.scale, c.scale);
         fxCtx.globalAlpha = Math.min(1, c.alpha);
 
-        // Ultra-fine glowing filament lines
-        fxCtx.strokeStyle = 'rgba(253, 164, 175, 0.45)';
-        fxCtx.lineWidth = 1;
-        fxCtx.shadowColor = '#fda4af';
-        fxCtx.shadowBlur = 6;
+        // Ultra-fine filament lines
+        fxCtx.strokeStyle = 'rgba(253, 164, 175, 0.6)';
+        fxCtx.lineWidth = 1.2;
 
         for (const [fromIdx, toIdx] of c.lines) {
           const p1 = c.nodes[fromIdx];

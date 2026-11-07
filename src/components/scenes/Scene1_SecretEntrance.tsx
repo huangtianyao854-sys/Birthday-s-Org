@@ -4,6 +4,9 @@ import { BirthdayConfig, AppLanguage } from '../../config/birthdayConfig';
 import { GardenFloralArch } from '../GardenFloralArch';
 import { EditableText } from '../EditableText';
 
+import { romanticAudio } from '../../utils/romanticAudio';
+import { birdsongAudio } from '../../utils/birdsongAudio';
+
 interface Scene1Props {
   config: BirthdayConfig;
   lang: AppLanguage;
@@ -23,11 +26,21 @@ export const Scene1_SecretEntrance: React.FC<Scene1Props> = ({
     ? (config.nicknameBurmese || 'မနှင်းလေး')
     : (config.nickname || config.girlfriendName);
 
+  const handleEnter = () => {
+    try {
+      romanticAudio.play(config.audioTrackUrl);
+      birdsongAudio.start();
+    } catch {
+      // ignore
+    }
+    onEnter();
+  };
+
   return (
     <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 pt-20 pb-16 sm:py-16 text-center select-none animate-fade-in-up">
       {/* Enchanted Garden Floral Trellis Arch Centerpiece */}
       <div className="relative mb-5 sm:mb-8">
-        <GardenFloralArch onClick={onEnter} />
+        <GardenFloralArch onClick={handleEnter} />
       </div>
 
       {/* Greeting line */}
@@ -91,7 +104,7 @@ export const Scene1_SecretEntrance: React.FC<Scene1Props> = ({
         {/* Interactive Glowing CTA Button */}
         <div className="pt-4">
           <button
-            onClick={onEnter}
+            onClick={handleEnter}
             className="group relative inline-flex items-center gap-3 px-8 py-3.5 sm:px-10 sm:py-4 rounded-full bg-gradient-to-r from-rose-600 via-pink-600 to-rose-600 hover:from-rose-500 hover:to-pink-500 text-white font-medium text-sm sm:text-base transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer shadow-xl shadow-rose-600/30 animate-breathe"
           >
             <Heart className="w-4 h-4 text-white fill-white group-hover:scale-125 transition-transform animate-heartbeat" />

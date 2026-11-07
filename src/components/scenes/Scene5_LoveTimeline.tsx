@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { Heart, Sparkles, Cake, Compass, Sun, ChevronDown, ChevronUp, ArrowRight, Calendar, Camera } from 'lucide-react';
+import {
+  Heart,
+  Sparkles,
+  Cake,
+  Compass,
+  Sun,
+  ArrowRight,
+  Calendar,
+  Camera,
+  Maximize2,
+  X,
+} from 'lucide-react';
 import { BirthdayConfig, calculateDaysTogether, Milestone, AppLanguage } from '../../config/birthdayConfig';
 import { EditableText } from '../EditableText';
 
@@ -18,9 +29,8 @@ export const Scene5_LoveTimeline: React.FC<Scene5Props> = ({
   isAdminMode = false,
   onUpdateConfig,
 }) => {
-  const [expandedId, setExpandedId] = useState<string | null>(
-    config.milestones[0]?.id || 'beginning'
-  );
+  // Fullscreen photo modal state
+  const [modalPhoto, setModalPhoto] = useState<{ url: string; title: string } | null>(null);
 
   const daysTogether = calculateDaysTogether(
     config.relationshipStartDate,
@@ -108,8 +118,6 @@ export const Scene5_LoveTimeline: React.FC<Scene5Props> = ({
 
         <div className="space-y-6 sm:space-y-8">
           {config.milestones.map((m) => {
-            const isExpanded = expandedId === m.id;
-
             return (
               <div
                 key={m.id}
@@ -117,66 +125,62 @@ export const Scene5_LoveTimeline: React.FC<Scene5Props> = ({
               >
                 {/* Milestone Node Icon with Heartbeat Hover */}
                 <div
-                  onClick={() => setExpandedId(isExpanded ? null : m.id)}
-                  className="z-10 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white border-2 border-rose-400 flex items-center justify-center shrink-0 cursor-pointer shadow-lg group-hover:scale-110 group-hover:border-amber-400 transition-all duration-300"
+                  className="z-10 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white border-2 border-rose-400 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 group-hover:border-amber-400 transition-all duration-300"
                 >
                   {getMilestoneIcon(m.iconName)}
                 </div>
 
-                {/* Milestone Card */}
+                {/* Milestone Card: Cleanly focused on Main Caption and Auto-fitting Photo */}
                 <div
-                  onClick={() => setExpandedId(isExpanded ? null : m.id)}
-                  className={`flex-1 glass-panel rounded-2xl p-4 sm:p-5 border border-rose-200/90 hover:border-rose-400 transition-all duration-300 cursor-pointer shadow-md text-left text-slate-900 ${
-                    isExpanded ? 'border-amber-400/80 bg-amber-50/95 shadow-xl' : ''
-                  }`}
+                  className="flex-1 glass-panel rounded-2xl p-4 sm:p-5 border border-rose-200/90 hover:border-rose-400 transition-all duration-300 shadow-md text-left text-slate-900 bg-white/70"
                 >
-                  {/* Card Header */}
-                  <div className="flex items-center justify-between gap-2">
-                    <div>
-                      <span className="text-xs font-mono text-rose-800 font-semibold block">
-                        {m.dateStr}
-                      </span>
-                      <h3 className={`text-base sm:text-lg font-bold text-slate-950 group-hover:text-rose-700 transition-colors ${
-                        lang === 'my' ? 'font-burmese' : 'font-serif-romantic'
-                      }`}>
-                        {m.title[lang] || m.title.my}
-                      </h3>
-                    </div>
-                    <button
-                      className="text-rose-700 p-1 hover:text-rose-950 cursor-pointer"
-                      aria-label="Expand card"
-                    >
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </button>
+                  {/* Card Header: Date & Main Caption */}
+                  <div className="space-y-1">
+                    <span className="text-xs font-mono text-rose-800 font-semibold block">
+                      {m.dateStr}
+                    </span>
+                    <h3 className={`text-base sm:text-lg font-bold text-slate-950 group-hover:text-rose-700 transition-colors ${
+                      lang === 'my' ? 'font-burmese' : 'font-serif-romantic'
+                    }`}>
+                      {m.title[lang] || m.title.my}
+                    </h3>
                   </div>
 
-                  {/* Tagline */}
-                  <p className={`text-xs sm:text-sm text-slate-700 mt-1 font-medium ${
-                    lang === 'my' ? 'font-burmese not-italic' : 'italic font-serif-romantic'
-                  }`}>
-                    &ldquo;{m.tagline[lang] || m.tagline.my}&rdquo;
-                  </p>
+                  {/* Photo: Auto-sized according to the uploaded photo (9:16 portrait, 16:9 landscape, 1:1, etc.) */}
+                  {m.photoUrl && (
+                    <div
+                      className="mt-3.5 relative rounded-2xl overflow-hidden border border-rose-200/90 shadow-md bg-slate-950/20 group/photo select-none cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setModalPhoto({
+                          url: m.photoUrl!,
+                          title: m.title[lang] || m.title.my || 'Memory',
+                        });
+                      }}
+                      title="Click to view full photo"
+                    >
+                      {/* Ambient soft glow matching the photo's colors */}
+                      <div
+                        className="absolute inset-0 bg-cover bg-center filter blur-xl scale-110 opacity-30 pointer-events-none"
+                        style={{ backgroundImage: `url(${m.photoUrl})` }}
+                      />
 
-                  {/* Expanded Content */}
-                  {isExpanded && (
-                    <div className={`mt-3 pt-3 border-t border-rose-200 space-y-2 animate-fade-in text-xs sm:text-sm text-slate-900 leading-relaxed font-medium ${
-                      lang === 'my' ? 'font-burmese' : ''
-                    }`}>
-                      <p>
-                        {m.description[lang] || m.description.my}
-                      </p>
+                      {/* Auto-adapts naturally to whatever photo is uploaded - 100% visible, no cropped people */}
+                      <div className="relative w-full flex items-center justify-center p-1 sm:p-2">
+                        <img
+                          src={m.photoUrl}
+                          alt={m.title[lang] || 'Memory'}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-auto max-h-[75vh] object-contain rounded-xl shadow-sm transition-transform duration-300 group-hover/photo:scale-[1.01] block"
+                          loading="lazy"
+                        />
+                      </div>
 
-                      {/* Photo if provided */}
-                      {m.photoUrl && (
-                        <div className="mt-3 rounded-xl overflow-hidden border border-rose-200 max-h-48 shadow-md">
-                          <img
-                            src={m.photoUrl}
-                            alt={m.title[lang] || 'Memory'}
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
+                      {/* Tap to view full size badge */}
+                      <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/75 backdrop-blur-md border border-white/20 text-white text-[11px] font-medium shadow-md opacity-85 group-hover/photo:opacity-100 transition-opacity pointer-events-none">
+                        <Maximize2 className="w-3 h-3 text-pink-300" />
+                        <span>{lang === 'my' ? 'ပုံအပြည့်ကြည့်ရန်' : 'View Full Photo'}</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -185,6 +189,45 @@ export const Scene5_LoveTimeline: React.FC<Scene5Props> = ({
           })}
         </div>
       </div>
+
+      {/* Fullscreen Lightbox Modal for Full-Res Viewing */}
+      {modalPhoto && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-fade-in"
+          onClick={() => setModalPhoto(null)}
+        >
+          {/* Top Bar with Title & Close */}
+          <div className="absolute top-4 inset-x-4 max-w-4xl mx-auto flex items-center justify-between z-10 pointer-events-auto">
+            <span className="text-white font-medium text-sm sm:text-base px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+              {modalPhoto.title}
+            </span>
+            <button
+              onClick={() => setModalPhoto(null)}
+              className="p-2 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors cursor-pointer border border-white/20"
+              aria-label="Close photo view"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Full Photo: Auto-sized to full screen, preserving 9:16 and all aspect ratios */}
+          <div
+            className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center my-auto pointer-events-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={modalPhoto.url}
+              alt={modalPhoto.title}
+              referrerPolicy="no-referrer"
+              className="max-h-[85vh] max-w-[92vw] object-contain rounded-2xl shadow-2xl border border-white/10 select-none"
+            />
+          </div>
+
+          <div className="absolute bottom-4 text-center text-xs text-white/70 pointer-events-none">
+            {lang === 'my' ? 'ပိတ်ရန် နေရာလွတ်ကို နှိပ်ပါ' : 'Click anywhere outside to close'}
+          </div>
+        </div>
+      )}
 
       {/* Continue to Under the Stars */}
       <div className="mt-12 text-center">

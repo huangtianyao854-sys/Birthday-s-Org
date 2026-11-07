@@ -94,13 +94,15 @@ export const Fireflies: React.FC<FirefliesProps> = ({ lightingMode = 'daylight' 
     if (!ctx) return;
 
     let animId = 0;
-    let dpr = window.devicePixelRatio || 1;
+    const isMobile = window.innerWidth < 768;
+    let dpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.25);
     let width = (canvas.width = window.innerWidth * dpr);
     let height = (canvas.height = window.innerHeight * dpr);
 
     const resizeCanvas = () => {
       if (!canvas) return;
-      dpr = window.devicePixelRatio || 1;
+      const mob = window.innerWidth < 768;
+      dpr = mob ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.25);
       width = canvas.width = window.innerWidth * dpr;
       height = canvas.height = window.innerHeight * dpr;
     };
@@ -126,22 +128,19 @@ export const Fireflies: React.FC<FirefliesProps> = ({ lightingMode = 'daylight' 
     window.addEventListener('touchmove', handlePointerMove, { passive: true });
     window.addEventListener('pointerdown', handlePointerMove, { passive: true });
 
-    // Target firefly count by lighting mode:
-    // Midnight: highest firefly density, magical swarms illuminating the deep blue darkness
-    // Twilight: dense, magical enchanted evening atmosphere with lots of twinkling golden lights
-    // Golden: moderate sunset emergence
-    // Daylight: gentle, sparse golden motes catching the sun
+    // Target firefly count optimized for silky mobile 60 FPS:
     const getTargetCount = (mode: GardenLightingMode): number => {
+      const mobile = window.innerWidth < 768;
       if (mode === 'midnight') {
-        return window.innerWidth < 640 ? 68 : 100;
+        return mobile ? 18 : 45;
       }
       if (mode === 'twilight') {
-        return window.innerWidth < 640 ? 42 : 64;
+        return mobile ? 14 : 35;
       }
       if (mode === 'golden') {
-        return window.innerWidth < 640 ? 18 : 28;
+        return mobile ? 10 : 20;
       }
-      return window.innerWidth < 640 ? 7 : 12;
+      return mobile ? 6 : 12;
     };
 
     // Mode-specific flash timing and brightness
@@ -413,47 +412,33 @@ export const Fireflies: React.FC<FirefliesProps> = ({ lightingMode = 'daylight' 
         const effAlpha = f.currentAlpha * f.fadeAlpha;
         if (effAlpha <= 0.008) continue; // Skip rendering if essentially invisible
 
-        // --- Render Golden Bioluminescent Glow ---
-        const { core, midGlow, outerAura, warmth } = f.colorTheme;
+        // --- Render Golden Bioluminescent Glow (Featherweight, 0 GC allocation) ---
+        const { midGlow, outerAura } = f.colorTheme;
         const currentGlowRadius = f.glowRadius * (0.65 + effAlpha * 0.6);
+        const coreRadius = Math.max(1.2 * dpr, f.size * (0.75 + effAlpha * 0.4));
 
         // 1. Soft Warm Ambient Halo
-        const glowGrad = ctx.createRadialGradient(
-          f.x,
-          f.y,
-          0,
-          f.x,
-          f.y,
-          currentGlowRadius
-        );
-        glowGrad.addColorStop(0, midGlow.replace(/[\d.]+\)$/, `${effAlpha * 0.95})`));
-        glowGrad.addColorStop(0.25, outerAura.replace(/[\d.]+\)$/, `${effAlpha * 0.65})`));
-        glowGrad.addColorStop(0.65, warmth.replace(/[\d.]+\)$/, `${effAlpha * 0.3})`));
-        glowGrad.addColorStop(1, 'rgba(250, 204, 21, 0)');
-
-        ctx.fillStyle = glowGrad;
+        ctx.globalAlpha = effAlpha * 0.32;
+        ctx.fillStyle = outerAura;
         ctx.beginPath();
         ctx.arc(f.x, f.y, currentGlowRadius, 0, Math.PI * 2);
         ctx.fill();
 
-        // 2. Bright Concentrated Core Dot
-        const coreRadius = Math.max(1.2 * dpr, f.size * (0.75 + effAlpha * 0.4));
-        const coreGrad = ctx.createRadialGradient(
-          f.x,
-          f.y,
-          0,
-          f.x,
-          f.y,
-          coreRadius
-        );
-        coreGrad.addColorStop(0, `rgba(255, 255, 255, ${effAlpha})`);
-        coreGrad.addColorStop(0.5, `rgba(254, 240, 138, ${effAlpha * 0.95})`);
-        coreGrad.addColorStop(1, `rgba(250, 204, 21, ${effAlpha * 0.4})`);
+        // 2. Mid Warm Glow
+        ctx.globalAlpha = effAlpha * 0.75;
+        ctx.fillStyle = midGlow;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, currentGlowRadius * 0.45, 0, Math.PI * 2);
+        ctx.fill();
 
-        ctx.fillStyle = coreGrad;
+        // 3. Bright Concentrated Core Dot
+        ctx.globalAlpha = effAlpha;
+        ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(f.x, f.y, coreRadius, 0, Math.PI * 2);
         ctx.fill();
+
+        ctx.globalAlpha = 1.0;
       }
     };
 

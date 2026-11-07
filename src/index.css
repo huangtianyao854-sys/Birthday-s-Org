@@ -33,31 +33,46 @@
   font-style: normal !important;
 }
 
-/* Translucent Luxury Garden Glass (Allows stunning garden view to show through) */
+/* Translucent Luxury Garden Glass (Allows stunning garden view to show through with fast mobile fill-rate) */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.42);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.65);
-  box-shadow: 0 15px 35px -10px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  box-shadow: 0 10px 25px -8px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
   color: #0f172a;
+  transform: translateZ(0);
 }
 
 .glass-panel-gold {
-  background: rgba(255, 253, 247, 0.52);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 253, 247, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(251, 191, 36, 0.45);
-  box-shadow: 0 15px 35px -10px rgba(180, 83, 9, 0.12), 0 0 0 1px rgba(254, 243, 199, 0.6) inset;
+  box-shadow: 0 10px 25px -8px rgba(180, 83, 9, 0.1), 0 0 0 1px rgba(254, 243, 199, 0.6) inset;
   color: #1e1b4b;
+  transform: translateZ(0);
+}
+
+@media (max-width: 640px) {
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .glass-panel-gold {
+    background: rgba(255, 253, 247, 0.85);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
 }
 
 .glow-rose {
-  box-shadow: 0 12px 30px -8px rgba(225, 29, 72, 0.2);
+  box-shadow: 0 8px 20px -6px rgba(225, 29, 72, 0.2);
 }
 
 .glow-gold {
-  box-shadow: 0 12px 30px -8px rgba(217, 119, 6, 0.22);
+  box-shadow: 0 8px 20px -6px rgba(217, 119, 6, 0.22);
 }
 
 /* Crisp text contrast shadows without blurry fuzzy halos */
@@ -69,33 +84,30 @@
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
 }
 
-/* Candle Flame Animation */
+/* Candle Flame Animation (Hardware accelerated via transform and opacity, no filter recalculation) */
 @keyframes flameFlicker {
   0%, 100% {
     transform: scale(1) rotate(-1deg);
     opacity: 0.95;
-    filter: drop-shadow(0 0 8px #fbbf24) drop-shadow(0 0 16px #f59e0b);
   }
   25% {
     transform: scale(1.06, 0.94) rotate(1.5deg);
     opacity: 1;
-    filter: drop-shadow(0 0 12px #fbbf24) drop-shadow(0 0 22px #ea580c);
   }
   50% {
     transform: scale(0.96, 1.05) rotate(-0.5deg);
     opacity: 0.88;
-    filter: drop-shadow(0 0 7px #fbbf24) drop-shadow(0 0 14px #f59e0b);
   }
   75% {
     transform: scale(1.04, 0.98) rotate(2deg);
     opacity: 0.98;
-    filter: drop-shadow(0 0 10px #fbbf24) drop-shadow(0 0 20px #ea580c);
   }
 }
 
 .animate-flame {
   animation: flameFlicker 1.8s ease-in-out infinite;
   transform-origin: bottom center;
+  filter: drop-shadow(0 0 10px #fbbf24);
 }
 
 /* Floating animation */
@@ -104,59 +116,57 @@
     transform: translateY(0px) rotate(0deg);
   }
   50% {
-    transform: translateY(-8px) rotate(1deg);
+    transform: translateY(-6px) rotate(0.8deg);
   }
 }
 
 .animate-float-slow {
   animation: romanticFloat 6s ease-in-out infinite;
+  will-change: transform;
 }
 
-/* Subtle Moon Pulse */
+/* Subtle Moon Pulse (Pure opacity without filter recalculation) */
 @keyframes moonPulse {
   0%, 100% {
-    filter: drop-shadow(0 0 25px rgba(243, 232, 255, 0.4)) drop-shadow(0 0 60px rgba(192, 132, 252, 0.2));
+    opacity: 0.85;
+    transform: scale(1);
   }
   50% {
-    filter: drop-shadow(0 0 35px rgba(243, 232, 255, 0.6)) drop-shadow(0 0 80px rgba(192, 132, 252, 0.35));
+    opacity: 1;
+    transform: scale(1.02);
   }
 }
 
 .animate-moon {
   animation: moonPulse 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 25px rgba(243, 232, 255, 0.4));
 }
 
-/* Dreamy Cinematic Optical Bloom & Glow Animations */
+/* Dreamy Cinematic Optical Bloom & Glow Animations (GPU-friendly opacity transitions) */
 @keyframes bloomPulseDay {
   0%, 100% {
-    opacity: 0.32;
-    filter: blur(14px) brightness(1.15) saturate(1.22);
+    opacity: 0.35;
   }
   50% {
-    opacity: 0.46;
-    filter: blur(18px) brightness(1.25) saturate(1.32);
+    opacity: 0.52;
   }
 }
 
 @keyframes bloomPulseGolden {
   0%, 100% {
-    opacity: 0.52;
-    filter: blur(16px) brightness(1.24) saturate(1.42) drop-shadow(0 0 25px rgba(245, 158, 11, 0.5));
+    opacity: 0.50;
   }
   50% {
-    opacity: 0.70;
-    filter: blur(22px) brightness(1.38) saturate(1.58) drop-shadow(0 0 45px rgba(234, 88, 12, 0.65));
+    opacity: 0.72;
   }
 }
 
 @keyframes bloomPulseTwilight {
   0%, 100% {
-    opacity: 0.42;
-    filter: blur(14px) brightness(1.18) saturate(1.35) drop-shadow(0 0 20px rgba(168, 85, 247, 0.45));
+    opacity: 0.40;
   }
   50% {
-    opacity: 0.62;
-    filter: blur(20px) brightness(1.30) saturate(1.50) drop-shadow(0 0 40px rgba(56, 189, 248, 0.55));
+    opacity: 0.65;
   }
 }
 
@@ -172,17 +182,26 @@
   animation: bloomPulseTwilight 6.5s ease-in-out infinite;
 }
 
-/* Fine Cotton Stationery Paper (Translucent so garden view shows through) */
+/* Fine Cotton Stationery Paper (Translucent so garden view shows through with fast mobile compositing) */
 .parchment-bg {
-  background-color: rgba(252, 250, 246, 0.72);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background-color: rgba(252, 250, 246, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   background-image: 
     radial-gradient(circle at 50% 0%, rgba(217, 119, 6, 0.08) 0%, transparent 65%),
     radial-gradient(circle at 100% 100%, rgba(225, 29, 72, 0.05) 0%, transparent 60%);
   border: 1px solid rgba(217, 119, 6, 0.28);
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  box-shadow: 0 18px 40px -12px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
   color: #1e293b;
+  transform: translateZ(0);
+}
+
+@media (max-width: 640px) {
+  .parchment-bg {
+    background-color: rgba(252, 250, 246, 0.92);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
 }
 
 /* Custom scrollbars */

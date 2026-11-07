@@ -1,6 +1,6 @@
 {
-  "summary":  "Updated implementation plan to document admin-only text editing security and full song upload capabilities (IndexedDB + Supabase dual-storage).",
-  "updatedAt":  "2026-10-25T05:00:32.768863932Z",
-  "requestFeedback":  true,
-  "userFacing":  true
+  "summary": "Mobile Performance Optimization Plan & Completed Enhancements:\n- Clamped devicePixelRatio to 1.0 on mobile across all active canvas layers (eliminating 80%+ fill-rate overhead on Retina/OLED phone screens).\n- Converted MoonlightPhase from continuous CPU/GPU canvas loop to 100% hardware-accelerated CSS volumetric beam with conic gradients.\n- Replaced expensive continuous filter: blur() keyframe animations in index.css with GPU compositor opacity transitions.\n- Optimized backdrop-filter blur from 14px down to 8px desktop / 4px mobile with hardware-accelerated transforms.\n- Eliminated all canvas ctx.shadowBlur calls (which force synchronous 2D Gaussian raster blur on every frame) in FloatingHeartsOverlay, AudioVisualizer, and StarfieldCanvas, replacing with fast multi-pass vector arcs.\n- Streamlined Fireflies.tsx: replaced per-frame radial gradient allocations with direct arc passes; reduced mobile count to 12-18.\n- Streamlined FallingLeavesOverlay.tsx: removed redundant fireflies/dust duplication, capped petals to 9-10 on mobile.\n- Streamlined WeatherOverlay.tsx: replaced multi-band gradient loops with GPU CSS atmospheric haze and lightweight motes.\n- Prevented touchmove React state spam in RealGardenBackground.tsx during mobile finger drag/scroll.",
+  "updatedAt": "2026-11-07T02:08:28.388868620Z",
+  "requestFeedback": true,
+  "userFacing": true
 }

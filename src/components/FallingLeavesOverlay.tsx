@@ -11,7 +11,7 @@ interface PetalParticle {
   rotSpeed: number;
   flip: number;
   flipSpeed: number;
-  type: 'rose_petal' | 'small_blossom' | 'garden_leaf' | 'firefly' | 'golden_dust';
+  type: 'rose_petal' | 'small_blossom' | 'garden_leaf';
   primaryColor: string;
   edgeColor: string;
   innerShade: string;
@@ -33,95 +33,87 @@ export const FallingLeavesOverlay: React.FC<FallingLeavesOverlayProps> = ({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     let animId = 0;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    const isMobile = window.innerWidth < 768;
+    const dpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.25);
+    let width = (canvas.width = window.innerWidth * dpr);
+    let height = (canvas.height = window.innerHeight * dpr);
 
     const onResize = () => {
       if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      const mob = window.innerWidth < 768;
+      const rDpr = mob ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.25);
+      width = canvas.width = window.innerWidth * rDpr;
+      height = canvas.height = window.innerHeight * rDpr;
     };
     window.addEventListener('resize', onResize);
 
     // Interactive breeze on touch / mouse move
     let windPushX = 0;
     const onMouseMove = (e: MouseEvent | TouchEvent) => {
-      const cx = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const norm = cx / window.innerWidth - 0.5;
-      windPushX = norm * 2.4;
+      const cx = 'touches' in e && e.touches.length > 0 ? e.touches[0].clientX : (e as MouseEvent).clientX;
+      if (cx !== undefined) {
+        const norm = cx / window.innerWidth - 0.5;
+        windPushX = norm * 1.8 * dpr;
+      }
     };
     window.addEventListener('mousemove', onMouseMove, { passive: true });
     window.addEventListener('touchmove', onMouseMove, { passive: true });
 
-    // Mode-specific botanical palettes
+    // Mode-specific botanical palettes (focused on delicate rose petals & garden leaves)
     const getPalettesForMode = (mode: GardenLightingMode) => {
       if (mode === 'golden') {
-        // Sunset Golden Hour Palettes: Amber, peach, terracotta, and warm golden sun dust
         return [
           { type: 'rose_petal' as const, primary: '#f59e0b', edge: '#dc2626', inner: '#fef08a' },
           { type: 'rose_petal' as const, primary: '#ea580c', edge: '#991b1b', inner: '#ffedd5' },
           { type: 'rose_petal' as const, primary: '#fb923c', edge: '#c2410c', inner: '#fff7ed' },
-          { type: 'golden_dust' as const, primary: '#fef08a', edge: '#f59e0b', inner: '#ffffff' },
           { type: 'small_blossom' as const, primary: '#f472b6', edge: '#be123c', inner: '#fed7aa' },
         ];
       }
       if (mode === 'midnight') {
-        // Midnight Sapphire Palettes: Deep moonlit ruby petals, bioluminescent cyan fireflies, and silver stardust
         return [
           { type: 'rose_petal' as const, primary: '#ec4899', edge: '#831843', inner: '#fce7f3' },
-          { type: 'firefly' as const, primary: '#fde047', edge: '#eab308', inner: '#ffffff' },
-          { type: 'firefly' as const, primary: '#38bdf8', edge: '#0284c7', inner: '#ffffff' },
-          { type: 'golden_dust' as const, primary: '#ffffff', edge: '#67e8f9', inner: '#ffffff' },
+          { type: 'rose_petal' as const, primary: '#db2777', edge: '#4c0519', inner: '#fbcfe8' },
           { type: 'small_blossom' as const, primary: '#c084fc', edge: '#581c87', inner: '#f3e8ff' },
         ];
       }
       if (mode === 'twilight') {
-        // Twilight Night Palettes: Moonlit rose petals and glowing fairy fireflies
         return [
           { type: 'rose_petal' as const, primary: '#f472b6', edge: '#831843', inner: '#fce7f3' },
-          { type: 'firefly' as const, primary: '#fef08a', edge: '#a3e635', inner: '#ffffff' },
           { type: 'rose_petal' as const, primary: '#db2777', edge: '#500724', inner: '#fbcfe8' },
-          { type: 'firefly' as const, primary: '#67e8f9', edge: '#06b6d4', inner: '#ffffff' },
           { type: 'small_blossom' as const, primary: '#e879f9', edge: '#701a75', inner: '#fdf4ff' },
         ];
       }
-      // Daylight: Crisp fresh English roses and vibrant leaves
+      // Daylight
       return [
         { type: 'rose_petal' as const, primary: '#f472b6', edge: '#db2777', inner: '#fbcfe8' },
         { type: 'rose_petal' as const, primary: '#fb7185', edge: '#e11d48', inner: '#ffe4e6' },
         { type: 'rose_petal' as const, primary: '#fda4af', edge: '#f43f5e', inner: '#fff1f2' },
-        { type: 'small_blossom' as const, primary: '#fbcfe8', edge: '#ec4899', inner: '#ffffff' },
         { type: 'garden_leaf' as const, primary: '#4ade80', edge: '#15803d', inner: '#86efac' },
       ];
     };
 
     const currentPalettes = getPalettesForMode(lightingMode);
-    // Optimized particle count for mobile buttery 60fps performance
-    const particleCount = width < 768 ? 16 : 26;
+    // Optimized particle count: 9 on mobile, 18 on desktop
+    const particleCount = isMobile ? 9 : 18;
     const particles: PetalParticle[] = [];
 
     const createParticle = (spawnTop = false): PetalParticle => {
       const palette = currentPalettes[Math.floor(Math.random() * currentPalettes.length)];
-      let size = Math.random() * 9 + 11;
-      let speedY = Math.random() * 0.85 + 0.6;
-
-      if (palette.type === 'firefly' || palette.type === 'golden_dust') {
-        size = Math.random() * 3 + 2;
-        speedY = (Math.random() - 0.4) * 0.5; // Fireflies hover and float gently
-      }
+      const size = (Math.random() * 8 + 10) * dpr;
+      const speedY = (Math.random() * 0.75 + 0.5) * dpr;
 
       return {
         x: Math.random() * width,
         y: spawnTop ? -size * 2 : Math.random() * height,
         size,
         speedY,
-        speedX: (Math.random() - 0.45) * 0.7,
+        speedX: (Math.random() - 0.45) * 0.6 * dpr,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.025,
+        rotSpeed: (Math.random() - 0.5) * 0.02,
         flip: Math.random() * Math.PI,
         flipSpeed: Math.random() * 0.02 + 0.01,
         type: palette.type,
@@ -129,9 +121,9 @@ export const FallingLeavesOverlay: React.FC<FallingLeavesOverlayProps> = ({
         edgeColor: palette.edge,
         innerShade: palette.inner,
         swingPhase: Math.random() * Math.PI * 2,
-        swingSpeed: Math.random() * 0.02 + 0.015,
-        swingAmplitude: Math.random() * 1.5 + 0.8,
-        alpha: Math.random() * 0.3 + 0.7,
+        swingSpeed: Math.random() * 0.02 + 0.012,
+        swingAmplitude: (Math.random() * 1.2 + 0.7) * dpr,
+        alpha: Math.random() * 0.3 + 0.65,
       };
     };
 
@@ -139,80 +131,38 @@ export const FallingLeavesOverlay: React.FC<FallingLeavesOverlayProps> = ({
       particles.push(createParticle(false));
     }
 
-    const drawParticle = (
-      pCtx: CanvasRenderingContext2D,
-      p: PetalParticle,
-      scaleX: number
-    ) => {
+    const drawParticle = (pCtx: CanvasRenderingContext2D, p: PetalParticle, scaleX: number) => {
       pCtx.save();
       pCtx.translate(p.x, p.y);
-
-      if (p.type === 'firefly' || p.type === 'golden_dust') {
-        // Glowing Firefly / Sun Dust Mote
-        const glowRadius = p.size * 3.5;
-        const radGrad = pCtx.createRadialGradient(0, 0, 0, 0, 0, glowRadius);
-        radGrad.addColorStop(0, p.innerShade);
-        radGrad.addColorStop(0.3, p.primaryColor);
-        radGrad.addColorStop(1, 'transparent');
-
-        pCtx.fillStyle = radGrad;
-        pCtx.beginPath();
-        pCtx.arc(0, 0, glowRadius, 0, Math.PI * 2);
-        pCtx.fill();
-
-        pCtx.fillStyle = p.innerShade;
-        pCtx.beginPath();
-        pCtx.arc(0, 0, p.size * 0.7, 0, Math.PI * 2);
-        pCtx.fill();
-        pCtx.restore();
-        return;
-      }
-
+      pCtx.globalAlpha = p.alpha;
       pCtx.rotate(p.rotation);
       pCtx.scale(scaleX, 1);
       const r = p.size;
 
-      // Realistic aerial depth shadow
-      pCtx.shadowColor = lightingMode === 'twilight' ? 'rgba(0,0,0,0.4)' : 'rgba(15, 23, 42, 0.15)';
-      pCtx.shadowBlur = 4;
-      pCtx.shadowOffsetY = 3;
-
       if (p.type === 'garden_leaf') {
-        // Delicate curved leaflet
         pCtx.beginPath();
         pCtx.moveTo(0, -r);
-        pCtx.quadraticCurveTo(r * 0.55, 0, 0, r);
-        pCtx.quadraticCurveTo(-r * 0.55, 0, 0, -r);
+        pCtx.quadraticCurveTo(r * 0.5, 0, 0, r);
+        pCtx.quadraticCurveTo(-r * 0.5, 0, 0, -r);
         pCtx.closePath();
-
-        const grad = pCtx.createLinearGradient(-r * 0.3, -r, r * 0.3, r);
-        grad.addColorStop(0, p.innerShade);
-        grad.addColorStop(0.5, p.primaryColor);
-        grad.addColorStop(1, p.edgeColor);
-
-        pCtx.fillStyle = grad;
+        pCtx.fillStyle = p.primaryColor;
         pCtx.fill();
       } else {
         // Natural curved English Rose Petal
         pCtx.beginPath();
         pCtx.moveTo(0, r);
-        pCtx.bezierCurveTo(-r * 0.8, r * 0.4, -r * 0.95, -r * 0.3, -r * 0.4, -r * 0.85);
-        pCtx.quadraticCurveTo(0, -r * 0.65, r * 0.4, -r * 0.85);
-        pCtx.bezierCurveTo(r * 0.95, -r * 0.3, r * 0.8, r * 0.4, 0, r);
+        pCtx.bezierCurveTo(-r * 0.75, r * 0.35, -r * 0.85, -r * 0.25, -r * 0.35, -r * 0.8);
+        pCtx.quadraticCurveTo(0, -r * 0.6, r * 0.35, -r * 0.8);
+        pCtx.bezierCurveTo(r * 0.85, -r * 0.25, r * 0.75, r * 0.35, 0, r);
         pCtx.closePath();
-
-        const petalGrad = pCtx.createRadialGradient(0, 0, r * 0.1, 0, -r * 0.3, r * 1.1);
-        petalGrad.addColorStop(0, p.innerShade);
-        petalGrad.addColorStop(0.55, p.primaryColor);
-        petalGrad.addColorStop(1, p.edgeColor);
-
-        pCtx.fillStyle = petalGrad;
+        pCtx.fillStyle = p.primaryColor;
         pCtx.fill();
 
-        // Velvet sheen
+        // Subtle highlight
         pCtx.beginPath();
-        pCtx.ellipse(0, -r * 0.2, r * 0.35, r * 0.5, 0, 0, Math.PI * 2);
-        pCtx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+        pCtx.ellipse(0, -r * 0.2, r * 0.3, r * 0.4, 0, 0, Math.PI * 2);
+        pCtx.fillStyle = p.innerShade;
+        pCtx.globalAlpha = p.alpha * 0.4;
         pCtx.fill();
       }
 
@@ -258,8 +208,7 @@ export const FallingLeavesOverlay: React.FC<FallingLeavesOverlayProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-10 select-none"
-      aria-hidden="true"
+      className="fixed inset-0 pointer-events-none z-10 w-full h-full"
     />
   );
 };

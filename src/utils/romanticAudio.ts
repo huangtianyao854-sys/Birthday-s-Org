@@ -81,12 +81,15 @@ class RomanticAudioEngine {
   }
 
   private playExternal(url: string) {
+    if (!url || url.trim() === '') return;
+
     // If the same URL is already set and playing, don't interrupt
     if (this.externalAudio && this.externalAudio.src === url && this.isPlaying && !this.externalAudio.paused) {
       return;
     }
 
     this.stopSynth();
+    this.isExternal = true;
 
     if (!this.externalAudio) {
       this.externalAudio = new Audio();
@@ -94,7 +97,10 @@ class RomanticAudioEngine {
       this.externalAudio.preload = 'auto';
     }
 
-    this.externalAudio.src = url;
+    if (this.externalAudio.src !== url) {
+      this.externalAudio.src = url;
+      this.externalAudio.load();
+    }
     this.externalAudio.volume = this.isMuted ? 0 : this.volume;
 
     const playPromise = this.externalAudio.play();
@@ -106,9 +112,8 @@ class RomanticAudioEngine {
           this.stopSynth();
         })
         .catch((err) => {
-          console.warn('[romanticAudio] Playback waiting for user gesture:', err?.message || err);
-          // If blocked by browser autoplay policy (common on mobile when cloud song loads after mount):
-          // Register a one-time gesture listener on window so that the very next user tap starts the custom song!
+          console.warn('[romanticAudio] Autoplay waiting for user gesture:', err?.message || err);
+          // Keep uploaded custom audio queued!
           const resumeOnGesture = () => {
             if (this.externalAudio && this.isExternal) {
               this.externalAudio
@@ -117,25 +122,22 @@ class RomanticAudioEngine {
                   this.isPlaying = true;
                   this.stopSynth();
                 })
-                .catch(() => {
-                  // If it still fails, fallback to synth
-                  this.isPlaying = false;
-                  this.play();
+                .catch((e) => {
+                  console.warn('[romanticAudio] Gesture retry error:', e);
                 });
             }
-            window.removeEventListener('click', resumeOnGesture);
-            window.removeEventListener('touchstart', resumeOnGesture);
             window.removeEventListener('pointerdown', resumeOnGesture);
+            window.removeEventListener('touchstart', resumeOnGesture);
+            window.removeEventListener('click', resumeOnGesture);
+            window.removeEventListener('scroll', resumeOnGesture);
+            window.removeEventListener('keydown', resumeOnGesture);
           };
 
-          window.addEventListener('click', resumeOnGesture, { once: true });
-          window.addEventListener('touchstart', resumeOnGesture, { once: true });
           window.addEventListener('pointerdown', resumeOnGesture, { once: true });
-
-          // Start ambient synth in the meantime so the garden isn't silent
-          this.isExternal = false;
-          this.play();
-          this.isExternal = true;
+          window.addEventListener('touchstart', resumeOnGesture, { once: true });
+          window.addEventListener('click', resumeOnGesture, { once: true });
+          window.addEventListener('scroll', resumeOnGesture, { once: true });
+          window.addEventListener('keydown', resumeOnGesture, { once: true });
         });
     }
 
@@ -262,6 +264,67 @@ class RomanticAudioEngine {
       const pitch = starPitches[Math.floor(Math.random() * starPitches.length)];
       this.playTone(pitch, 1.0, 0.18, 'triangle');
     }
+  }
+
+  /**
+   * Tactile acoustic feedback for wax seal progressive cracking
+   */
+  public playWaxTensionPing(progress: number = 0.5) {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    // Frequency rises slightly as wax cracks deeper
+    const freq = 440 + progress * 280;
+    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.7, now + 0.05);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.12 * Math.min(1, progress + 0.3), now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now + 0.06);
+  }
+
+  /**
+   * Satisfying, crisp tactile snap & magical shimmer when the wax seal breaks
+   */
+  public playWaxSealBreak() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+
+    const now = this.ctx.currentTime;
+
+    // 1. Tactile snap/pop
+    const snapOsc = this.ctx.createOscillator();
+    const snapGain = this.ctx.createGain();
+    snapOsc.type = 'triangle';
+    snapOsc.frequency.setValueAtTime(320, now);
+    snapOsc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+
+    snapGain.gain.setValueAtTime(0.28, now);
+    snapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+
+    snapOsc.connect(snapGain);
+    snapGain.connect(this.masterGain);
+    snapOsc.start(now);
+    snapOsc.stop(now + 0.09);
+
+    // 2. Swelling starlight sparkle chime chord
+    const chord = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    chord.forEach((freq, idx) => {
+      setTimeout(() => {
+        this.playTone(freq, 1.2, 0.16, 'sine');
+      }, 40 + idx * 75);
+    });
   }
 
   public getIsPlaying(): boolean {

@@ -20,7 +20,6 @@ interface FloatingParticle {
   glowColor: string;
   life: number;
   maxLife: number;
-  frequencyIndex: number;
 }
 
 export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
@@ -49,19 +48,21 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    const isMobile = window.innerWidth < 768;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
 
     const handleResize = () => {
       if (!canvas) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const mob = window.innerWidth < 768;
+      const dpr = mob ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.25);
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
     handleResize();
@@ -69,71 +70,63 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
 
     // Floating particles pool
     const particles: FloatingParticle[] = [];
-    const MAX_PARTICLES = 60;
+    const MAX_PARTICLES = isMobile ? 10 : 22;
 
     // Palette generator according to current GardenLightingMode
     const getModeVisualConfig = (mode: GardenLightingMode) => {
       switch (mode) {
         case 'midnight':
           return {
-            // Peak Prominence: Starlight diamond, neon cyan, electric indigo
             waveGradients: [
-              'rgba(56, 189, 248, 0.45)', // sky-400
-              'rgba(129, 140, 248, 0.40)', // indigo-400
-              'rgba(244, 114, 182, 0.35)', // pink-400
+              'rgba(56, 189, 248, 0.40)', // sky-400
+              'rgba(129, 140, 248, 0.35)', // indigo-400
+              'rgba(244, 114, 182, 0.30)', // pink-400
             ],
             particleColors: ['#38bdf8', '#818cf8', '#67e8f9', '#c084fc', '#ffffff'],
-            glowColor: 'rgba(56, 189, 248, 0.85)',
-            glowBlur: 18,
-            masterAlpha: 0.95,
-            particleSpawnRate: 0.65,
-            waveHeightMultiplier: 1.25,
+            glowColor: 'rgba(56, 189, 248, 0.5)',
+            masterAlpha: 0.9,
+            particleSpawnRate: 0.45,
+            waveHeightMultiplier: 1.1,
           };
         case 'twilight':
           return {
-            // High Visibility: Luminous magenta, twilight violet, golden stardust
             waveGradients: [
-              'rgba(244, 63, 94, 0.42)',  // rose-500
-              'rgba(192, 132, 252, 0.38)', // purple-400
-              'rgba(251, 191, 36, 0.32)',  // amber-400
+              'rgba(244, 63, 94, 0.36)',  // rose-500
+              'rgba(192, 132, 252, 0.32)', // purple-400
+              'rgba(251, 191, 36, 0.28)',  // amber-400
             ],
             particleColors: ['#f43f5e', '#fb7185', '#c084fc', '#fde047', '#fed7aa'],
-            glowColor: 'rgba(244, 63, 94, 0.8)',
-            glowBlur: 16,
-            masterAlpha: 0.88,
-            particleSpawnRate: 0.55,
-            waveHeightMultiplier: 1.15,
+            glowColor: 'rgba(244, 63, 94, 0.45)',
+            masterAlpha: 0.82,
+            particleSpawnRate: 0.4,
+            waveHeightMultiplier: 1.05,
           };
         case 'golden':
           return {
-            // Sunset Golden Hour: Honey gold, warm amber, soft peach
             waveGradients: [
               'rgba(245, 158, 11, 0.32)', // amber-500
-              'rgba(251, 191, 36, 0.28)', // amber-400
-              'rgba(254, 215, 170, 0.22)', // orange-200
+              'rgba(251, 146, 60, 0.26)', // orange-400
+              'rgba(254, 240, 138, 0.22)', // yellow-200
             ],
-            particleColors: ['#fbbf24', '#f59e0b', '#fed7aa', '#f472b6'],
-            glowColor: 'rgba(251, 191, 36, 0.6)',
-            glowBlur: 12,
+            particleColors: ['#f59e0b', '#fb923c', '#fef08a', '#ea580c'],
+            glowColor: 'rgba(245, 158, 11, 0.4)',
             masterAlpha: 0.65,
-            particleSpawnRate: 0.38,
-            waveHeightMultiplier: 1.0,
+            particleSpawnRate: 0.3,
+            waveHeightMultiplier: 0.95,
           };
         case 'daylight':
         default:
           return {
-            // Soft & Subdued: Warm petal pink, soft sunbeam gold, translucent sky
             waveGradients: [
-              'rgba(244, 114, 182, 0.22)', // pink-400
-              'rgba(254, 240, 138, 0.20)', // yellow-200
-              'rgba(186, 230, 253, 0.18)', // sky-200
+              'rgba(244, 114, 182, 0.20)', // pink-400
+              'rgba(254, 240, 138, 0.18)', // yellow-200
+              'rgba(186, 230, 253, 0.16)', // sky-200
             ],
             particleColors: ['#f472b6', '#fef08a', '#bae6fd'],
-            glowColor: 'rgba(244, 114, 182, 0.45)',
-            glowBlur: 8,
-            masterAlpha: 0.45,
-            particleSpawnRate: 0.25,
-            waveHeightMultiplier: 0.85,
+            glowColor: 'rgba(244, 114, 182, 0.35)',
+            masterAlpha: 0.4,
+            particleSpawnRate: 0.2,
+            waveHeightMultiplier: 0.8,
           };
       }
     };
@@ -150,10 +143,17 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
       const analysis = romanticAudio.getAudioAnalysis();
       const isAudible = analysis.isPlaying && (isPlayingRef.current || romanticAudio.getIsPlaying());
 
+      // If audio is not playing and particles are empty, throttle
+      if (!isAudible && smoothedEnergy < 0.05 && particles.length === 0) {
+        ctx.clearRect(0, 0, width, height);
+        animFrameIdRef.current = requestAnimationFrame(render);
+        return;
+      }
+
       // Target dynamic values
-      const targetEnergy = isAudible ? Math.max(0.2, analysis.energy) : 0.08;
-      const targetBass = isAudible ? Math.max(0.15, analysis.bass) : 0.06;
-      const targetTreble = isAudible ? Math.max(0.15, analysis.treble) : 0.05;
+      const targetEnergy = isAudible ? Math.max(0.2, analysis.energy) : 0.04;
+      const targetBass = isAudible ? Math.max(0.15, analysis.bass) : 0.03;
+      const targetTreble = isAudible ? Math.max(0.15, analysis.treble) : 0.03;
 
       // Smooth interpolation for natural fluid response
       smoothedEnergy += (targetEnergy - smoothedEnergy) * 0.12;
@@ -165,37 +165,28 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
 
       ctx.clearRect(0, 0, width, height);
 
-      // We anchor the waveform gracefully in the lower 18-25% of the screen
+      // Baseline position
       const baselineY = height * 0.86;
-      const wavePointsCount = 48;
+      const wavePointsCount = isMobile ? 18 : 32;
       const pointSpacing = width / (wavePointsCount - 1);
 
       // Dynamic wave amplitude boosted by bass & current lighting mode
       const amplitude =
-        (22 + smoothedBass * 65 + smoothedEnergy * 40) * config.waveHeightMultiplier;
+        (16 + smoothedBass * 50 + smoothedEnergy * 30) * config.waveHeightMultiplier;
 
-      // 2. Render 3 Harmonic Translucent Waveform Ribbons
+      // 2. Render 2 Harmonic Translucent Waveform Ribbons (Fast 2-pass)
       const waves = [
         {
           frequency: 0.0035,
           speed: 1.4,
           phase: 0,
           color: config.waveGradients[0],
-          ampFactor: 1.0,
         },
         {
-          frequency: 0.0055,
-          speed: 1.9,
+          frequency: 0.006,
+          speed: 2.0,
           phase: Math.PI / 3,
           color: config.waveGradients[1],
-          ampFactor: 0.75,
-        },
-        {
-          frequency: 0.0075,
-          speed: 2.3,
-          phase: (Math.PI * 2) / 3,
-          color: config.waveGradients[2],
-          ampFactor: 0.55,
         },
       ];
 
@@ -206,22 +197,19 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
 
         for (let i = 0; i < wavePointsCount; i++) {
           const x = i * pointSpacing;
-          // Time domain wave deformation
           const audioOffsetIdx = Math.floor((i / wavePointsCount) * analysis.timeData.length);
-          const rawAudioVal = (analysis.timeData[audioOffsetIdx] - 128) / 128; // -1 to +1
-          const audioDeform = isAudible ? rawAudioVal * (amplitude * 0.6) : 0;
+          const rawWaveVal = analysis.timeData[audioOffsetIdx] || 128;
+          const normalizedAudioDisp = isAudible ? (rawWaveVal - 128) / 128 : 0;
 
-          const harmonicSin =
-            Math.sin(x * w.frequency + time * w.speed + w.phase) * amplitude * w.ampFactor;
-          const secondarySin =
-            Math.cos(x * w.frequency * 1.8 - time * 0.8) * (amplitude * 0.35);
-
-          const y = baselineY + harmonicSin + secondarySin + audioDeform;
+          const harmonicSway = Math.sin(x * w.frequency + time * w.speed + w.phase);
+          const y =
+            baselineY +
+            harmonicSway * amplitude +
+            normalizedAudioDisp * (amplitude * 0.7);
 
           if (i === 0) {
             ctx.lineTo(x, y);
           } else {
-            // Smooth bezier interpolation
             const prevX = (i - 1) * pointSpacing;
             const cX = (prevX + x) / 2;
             ctx.quadraticCurveTo(prevX, y, cX, y);
@@ -231,8 +219,7 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
         ctx.lineTo(width, height);
         ctx.closePath();
 
-        // Create vertical gradient fade from crest to floor
-        const grad = ctx.createLinearGradient(0, baselineY - amplitude * 1.5, 0, height);
+        const grad = ctx.createLinearGradient(0, baselineY - amplitude, 0, height);
         grad.addColorStop(0, w.color);
         grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
@@ -241,22 +228,25 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
         ctx.restore();
       });
 
-      // 3. Render Floating Waveform Nodes along the Primary Wave
-      ctx.save();
-      ctx.shadowBlur = config.glowBlur;
-      ctx.shadowColor = config.glowColor;
-
+      // 3. Render Floating Waveform Nodes along the Primary Wave (Zero shadowBlur overhead)
       for (let i = 0; i < wavePointsCount; i += 2) {
         const x = i * pointSpacing;
         const waveY =
           baselineY +
           Math.sin(x * 0.0035 + time * 1.4) * amplitude +
-          Math.cos(x * 0.006 - time * 0.8) * (amplitude * 0.35);
+          Math.cos(x * 0.006 - time * 0.8) * (amplitude * 0.3);
 
-        // Node circle
-        const nodeRadius = 2 + smoothedEnergy * 3.5;
-        const nodeAlpha = Math.min(1, 0.4 + smoothedEnergy * 0.6) * config.masterAlpha;
+        const nodeRadius = 2 + smoothedEnergy * 2.5;
+        const nodeAlpha = Math.min(1, 0.4 + smoothedEnergy * 0.5) * config.masterAlpha;
 
+        // Outer halo
+        ctx.beginPath();
+        ctx.arc(x, waveY, nodeRadius * 2.0, 0, Math.PI * 2);
+        ctx.fillStyle = config.glowColor;
+        ctx.globalAlpha = nodeAlpha * 0.35;
+        ctx.fill();
+
+        // Node dot
         ctx.beginPath();
         ctx.arc(x, waveY, nodeRadius, 0, Math.PI * 2);
         ctx.fillStyle = config.particleColors[i % config.particleColors.length];
@@ -271,22 +261,20 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
         ) {
           const pColor = config.particleColors[Math.floor(Math.random() * config.particleColors.length)];
           particles.push({
-            x: x + (Math.random() - 0.5) * 20,
+            x: x + (Math.random() - 0.5) * 16,
             y: waveY - 2,
-            vx: (Math.random() - 0.5) * 1.2,
-            vy: -(0.6 + Math.random() * 1.8 + smoothedBass * 2.2),
-            radius: 1.5 + Math.random() * 2.8 + smoothedTreble * 2.0,
-            baseAlpha: 0.7 + Math.random() * 0.3,
+            vx: (Math.random() - 0.5) * 0.8,
+            vy: -(0.5 + Math.random() * 1.4 + smoothedBass * 1.6),
+            radius: 1.4 + Math.random() * 2.0,
+            baseAlpha: 0.6 + Math.random() * 0.3,
             alpha: 0,
             color: pColor,
             glowColor: config.glowColor,
             life: 0,
-            maxLife: 60 + Math.random() * 70,
-            frequencyIndex: i,
+            maxLife: 50 + Math.random() * 50,
           });
         }
       }
-      ctx.restore();
 
       // 4. Update and Render Floating Musical Beat Particles
       for (let pIdx = particles.length - 1; pIdx >= 0; pIdx--) {
@@ -298,51 +286,33 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
           continue;
         }
 
-        // Float motion: upward with gentle romantic horizontal sine sway
-        p.x += p.vx + Math.sin(time * 2 + p.life * 0.05) * 0.6;
+        p.x += p.vx + Math.sin(time * 2 + p.life * 0.05) * 0.5;
         p.y += p.vy;
 
-        // Fade in rapidly, linger warmly, fade out slowly
         const progress = p.life / p.maxLife;
-        if (progress < 0.2) {
-          p.alpha = (progress / 0.2) * p.baseAlpha;
-        } else {
-          p.alpha = (1 - progress) * p.baseAlpha;
-        }
+        p.alpha = (progress < 0.2 ? progress / 0.2 : 1 - progress) * p.baseAlpha * config.masterAlpha;
 
-        p.alpha *= config.masterAlpha;
+        // Draw particle glow (multi-pass arc without costly shadowBlur)
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius * 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = p.glowColor;
+        ctx.globalAlpha = p.alpha * 0.35;
+        ctx.fill();
 
-        // Render particle with ethereal glow in twilight / midnight
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, Math.min(1, p.alpha));
-        if (currentMode === 'twilight' || currentMode === 'midnight') {
-          ctx.shadowBlur = config.glowBlur * 1.2;
-          ctx.shadowColor = p.glowColor;
-        }
-
+        // Inner solid particle
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
         ctx.fill();
-
-        // Tiny starlight sparkle core for larger particles
-        if (p.radius > 2.5 && (currentMode === 'twilight' || currentMode === 'midnight')) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius * 0.4, 0, Math.PI * 2);
-          ctx.fillStyle = '#ffffff';
-          ctx.fill();
-        }
-
-        ctx.restore();
       }
 
+      ctx.globalAlpha = 1.0;
       animFrameIdRef.current = requestAnimationFrame(render);
     };
 
-    // Start animation loop
     animFrameIdRef.current = requestAnimationFrame(render);
 
-    // Pause animation when document tab is hidden to conserve mobile battery
     const handleVisibilityChange = () => {
       if (document.hidden) {
         if (animFrameIdRef.current) {
